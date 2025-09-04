@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idle Hero TD Wiki - Milestones</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+    body { font-family: 'Inter', Arial, sans-serif; background: #f8fafc; }
+    .wiki-navbar { background: #2563eb; }
+    .wiki-navbar .navbar-brand { font-weight: 700; font-size: 1.3rem; letter-spacing: 0.02em; }
+    .wiki-navbar .nav-link { color: #fff !important; font-weight: 500; }
+    .wiki-navbar .nav-link.active, .wiki-navbar .nav-link:focus { background: #1e40af; border-radius: 6px; }
+    .wiki-header { font-size: 2rem; font-weight: 700; margin-bottom: 0.5em; color: #2563eb; }
+    .wiki-subheader { font-size: 1.1rem; color: #334155; margin-bottom: 1.5em; }
+    .filter-bar { margin-bottom: 1.5em; }
+    .filter-btn { margin-right: 0.5em; margin-bottom: 0.5em; font-size: 0.95em; font-weight: 500; }
+    .filter-btn.active { background: #2563eb; color: #fff; }
+  .milestone-matrix { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 1.5em; width: 100%; max-width: 100%; overflow-x: auto; margin: 0; }
+  .milestone-matrix table { width: 100%; min-width: 1200px; border-collapse: collapse; }
+    .milestone-matrix th, .milestone-matrix td { font-size: 0.65em; padding: 0.25em 0.3em; text-align: center; border-bottom: 1px solid #e5e7eb; }
+    .milestone-matrix th { background: #2563eb; color: #fff; font-weight: 600; }
+    .milestone-matrix td.hero { font-weight: 600; color: #2563eb; background: #f1f5f9; }
+    .milestone-matrix td.attribute { font-size: 0.6em; color: #64748b; }
+    .milestone-matrix td.bonus { font-size: 0.75em; font-weight: 500; }
+    .milestone-matrix tr:last-child td { border-bottom: none; }
+    @media (max-width: 900px) {
+      .milestone-matrix th, .milestone-matrix td { font-size: 0.55em; padding: 0.15em 0.15em; }
+      .wiki-header { font-size: 1.3rem; }
+    }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg wiki-navbar mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand text-white" href="#">Idle Hero TD Wiki</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="#">Milestones</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Heroes</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Synergies</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Editor</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="wiki-header">Hero Milestones</div>
+      <div class="wiki-subheader">Compare hero milestone bonuses across all levels - filter by attribute type to highlight specific bonuses</div>
+      <div class="filter-bar" id="filter-bar">
+  <button class="btn btn-light filter-btn active" data-attr="All Types">All Types</button>
+  <button class="btn btn-light filter-btn" data-attr="damage">Damage</button>
+  <button class="btn btn-light filter-btn" data-attr="skill power">Skill Power</button>
+  <button class="btn btn-light filter-btn" data-attr="critical">Critical</button>
+  <button class="btn btn-light filter-btn" data-attr="attack speed">Attack Speed</button>
+  <button class="btn btn-light filter-btn" data-attr="gold bonus">Gold Bonus</button>
+  <button class="btn btn-light filter-btn" data-attr="experience">Experience</button>
+  <button class="btn btn-light filter-btn" data-attr="range">Range</button>
+  <button class="btn btn-light filter-btn" data-attr="duration">Duration</button>
+  <button class="btn btn-light filter-btn" data-attr="energy">Energy</button>
+  <button class="btn btn-light filter-btn" data-attr="rank">Rank</button>
+      </div>
+  <div class="milestone-matrix" style="width:100%;max-width:100%;margin:0 auto;">
+        <table id="milestone-table">
+          <thead>
+            <tr id="milestone-header"></tr>
+          </thead>
+          <tbody id="milestone-body"></tbody>
+        </table>
+      </div>
+    </div>
+</body>
+</html>
+    <script>
+    // Highlight matching attributes instead of hiding others
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        window.activeFilter = this.getAttribute('data-attr');
+        renderMilestoneTable(window.milestoneData, window.activeFilter);
+      });
+    });
+
+    // Improved attribute extraction and highlighting
+    const attributeMap = {
+      'damage': ['damage', 'dmg'],
+      'critical': ['crit', 'crit chance', 'crit damage', 'super crit chance', 'super crit damage', 'ultra crit chance', 'ultra crit damage'],
+      'attack speed': ['attack speed', 'speed'],
+      'gold bonus': ['gold', 'kill gold', 'super gold amount', 'ultra gold amount', 'super gold chance', 'ultra gold chance'],
+      'experience': ['exp', 'rank exp', 'super exp', 'ultra exp',],
+      'range': ['range'],
+      'duration': ['duration', 'skill duration', 'skill cooldown'],
+      'skill power': ['skill power'],
+      'energy': ['energy', 'energy regen', 'energy cost reduction'],
+      'rank': ['rank', 'rank level']
+    };
+
+    function matchesFilter(attribute, filter) {
+      if (filter === 'All Types') return false;
+      attribute = attribute.toLowerCase();
+      // Check for exact match or substring match for mapped attributes
+      if (attributeMap[filter]) {
+        return attributeMap[filter].some(a => attribute === a || attribute.includes(a));
+      }
+      return attribute === filter;
+    }
+
+    function renderMilestoneTable(data, activeType = 'All Types') {
+      const columns = data.columns;
+      const table = document.getElementById('milestone-table');
+      const headerRow = document.getElementById('milestone-header');
+      const tableBody = document.getElementById('milestone-body');
+      headerRow.innerHTML = '';
+      columns.forEach((col, idx) => {
+        const th = document.createElement('th');
+        th.textContent = idx === 0 ? 'Hero' : col.replace('level ', 'L').toUpperCase();
+        headerRow.appendChild(th);
+      });
+      tableBody.innerHTML = '';
+      data.table.forEach(row => {
+        const tr = document.createElement('tr');
+        columns.forEach((col, idx) => {
+          const td = document.createElement('td');
+          if (idx === 0) {
+            td.className = 'hero';
+            td.innerHTML = row[col];
+          } else {
+            let cellObj = row[col] || { bonus: '', global: false, personal: false };
+            let bonus = cellObj.bonus;
+            let attribute = '';
+            if (bonus) {
+              let match = bonus.match(/^[+\-]?\d+%?\s+([A-Za-z _%]+)/);
+              attribute = match ? match[1].toLowerCase().replace(/_/g, ' ').trim() : '';
+              td.className = 'bonus';
+              let typeBadge = cellObj.global ? 'GLOBAL' : (cellObj.personal ? 'PERSONAL' : '');
+              let badgeColor = cellObj.global ? '#22c55e' : (cellObj.personal ? '#f97316' : '#2563eb');
+              let highlight = (activeType !== 'All Types' && matchesFilter(attribute, activeType)) ? 'background: #fef9c3;' : '';
+              td.innerHTML = `${bonus}` + (typeBadge ? `<br><span class='badge' style='background:${badgeColor};color:#fff;font-size:0.6em;border-radius:4px;padding:2px 6px;'>${typeBadge}</span>` : '');
+              if (highlight) td.setAttribute('style', highlight);
+            }
+          }
+          tr.appendChild(td);
+        });
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // Initial load
+    fetch('/table')
+      .then(response => response.json())
+      .then(data => {
+        window.milestoneData = data;
+        window.activeFilter = 'All Types';
+        renderMilestoneTable(data, 'All Types');
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+</body>
+</html>
