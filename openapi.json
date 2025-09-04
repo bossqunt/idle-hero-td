@@ -1,0 +1,72 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "IdleHeroTD API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/heroes": {
+      "get": {
+        "summary": "Get all heroes data",
+        "responses": {
+          "200": {
+            "description": "List of heroes",
+            "content": {
+              "application/json": {
+                "example": [
+                  {"id": 1, "name": "Militia", "type": "melee", "rarity": "common"},
+                  {"id": 2, "name": "Archer", "type": "ranged", "rarity": "rare"}
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/levelup": {
+      "get": {
+        "summary": "Get all level-up milestone data",
+        "responses": {
+          "200": {
+            "description": "Level-up milestone data",
+            "content": {
+              "application/json": {
+                "example": {
+                  "1": [
+                    {"level": 25, "bonus": 10, "bonus_type": "percent", "attribute": "damage", "global": false, "personal": true}
+                  ],
+                  "2": [
+                    {"level": 25, "bonus": 2, "bonus_type": "percent", "attribute": "attack_speed", "global": true, "personal": false}
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/table": {
+      "get": {
+        "summary": "Get merged table data",
+        "responses": {
+          "200": {
+            "description": "Table data",
+            "content": {
+              "application/json": {
+                "example": {
+                  "table": [
+                    {
+                      "hero": "Militia",
+                      "level 25": {"bonus": "+10 Damage%", "global": false, "personal": true}
+                    }
+                  ],
+                  "columns": ["hero", "level 25", "level 75", "..."]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
