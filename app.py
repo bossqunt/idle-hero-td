@@ -1,9 +1,11 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
+import json
 from flask import render_template
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from wtforms.fields import SelectField, SelectMultipleField
 from flask_sqlalchemy import SQLAlchemy
+from collections import OrderedDict
 import sqlite3
 
 app = Flask(__name__)
@@ -223,16 +225,37 @@ def heroes_page():
     heroes = Hero.query.all()
     return render_template('heroes.html', heroes=heroes, active_nav='heroes')
  
-
-
-# /levelup shows milestone table
-@app.route('/levelup')
-
-def levelup_page():
-    heroes = Hero.query.all()
+@app.route('/api/heroes/levelup')
+def api_heroes_levelup():
+    hero_list = []
     conn = sqlite3.connect(os.path.join(basedir, 'idleherotd.db'))
     cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT level FROM hero_level_bonus ORDER BY level')
+    heroes = Hero.query.all()
+    for hero in heroes:
+        cursor.execute('SELECT level, bonus, bonus_type, attribute, global, personal FROM hero_level_bonus WHERE hero_id=?', (hero.hero_id,))
+        bonuses = []
+        for row in cursor.fetchall():
+            bonuses.append(OrderedDict([
+                ('level', row[0]),
+                ('attribute', row[3]),
+                ('value', row[1]),
+                ('type', row[2]),
+                ('scope', {
+                    'global': bool(row[4]),
+                    'personal': bool(row[5])
+                })
+            ]))
+        hero_dict = OrderedDict()
+        hero_dict['id'] = hero.hero_id
+        hero_dict['name'] = hero.name
+        hero_dict['bonuses'] = bonuses
+        hero_list.append(hero_dict)
+    conn.close()
+    result = OrderedDict()
+    result['heroes'] = hero_list
+    return Response(json.dumps(result, ensure_ascii=False, sort_keys=False), mimetype='application/json')
+        
+        
     levels = [row[0] for row in cursor.fetchall()]
     cursor.execute('SELECT DISTINCT attribute FROM hero_level_bonus')
     attributes = [row[0] for row in cursor.fetchall()]
