@@ -1,7 +1,6 @@
 
 from flask import Flask, jsonify, send_file
 from flask import render_template_string, send_from_directory
-from streamlit import html
 app = Flask(__name__)
 
 # Endpoint to retrieve all heroes data

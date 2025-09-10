@@ -2,9 +2,6 @@ from flask import Flask, jsonify, request, Response
 import json
 from api import api
 from flask import render_template
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
-from wtforms.fields import SelectField, SelectMultipleField
 import os
 import sqlite3
 from models import db, Hero, SynergyDetail, basedir
@@ -17,7 +14,6 @@ app.secret_key = "idleherotd-super-secret-key-2025"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'idleherotd.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
-admin = Admin(app, name='Idle Hero TD Admin', template_mode='bootstrap3')
 SWAGGER_URL = '/swagger'
 API_URL = '/openapi.json'  # Path to your OpenAPI spec
 
@@ -33,72 +29,10 @@ app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 def openapi_json():
     return send_from_directory('.', 'openapi.json')
 
-# Custom SynergyDetail admin view
-class SynergyDetailAdmin(ModelView):
-    form_overrides = {
-        'hero_id': SelectField,
-        'synergy_ids': SelectMultipleField,
-        'attribute': SelectField,
-        'bonus_type': SelectField,
-        'tier': SelectField,
-        'rank_required': SelectField,
-    }
-
-    def _get_choices(self):
-        # Get all choices from DB
-        hero_choices = [(str(h.hero_id), h.name) for h in Hero.query.all()]
-        attribute_choices = [(a.attribute, a.attribute.replace('_', ' ')) for a in db.session.query(SynergyDetail.attribute).distinct()]
-        bonus_type_choices = [(b.bonus_type, b.bonus_type) for b in db.session.query(SynergyDetail.bonus_type).distinct()]
-        tier_choices = [(str(t.tier), f'Tier {t.tier}') for t in db.session.query(SynergyDetail.tier).distinct()]
-        rank_choices = [(str(r.rank_required), str(r.rank_required)) for r in db.session.query(SynergyDetail.rank_required).distinct()]
-        return hero_choices, attribute_choices, bonus_type_choices, tier_choices, rank_choices
-
-    def create_form(self, obj=None):
-        form = super().create_form(obj)
-        hero_choices, attribute_choices, bonus_type_choices, tier_choices, rank_choices = self._get_choices()
-        form.hero_id.choices = hero_choices
-        form.synergy_ids.choices = hero_choices
-        form.attribute.choices = attribute_choices
-        form.bonus_type.choices = bonus_type_choices
-        form.tier.choices = tier_choices
-        form.rank_required.choices = rank_choices
-        return form
-
-    def edit_form(self, obj=None):
-        form = super().edit_form(obj)
-        hero_choices, attribute_choices, bonus_type_choices, tier_choices, rank_choices = self._get_choices()
-        form.hero_id.choices = hero_choices
-        form.synergy_ids.choices = hero_choices
-        form.attribute.choices = attribute_choices
-        form.bonus_type.choices = bonus_type_choices
-        form.tier.choices = tier_choices
-        form.rank_required.choices = rank_choices
-        return form
-
-    column_list = ('hero_id', 'synergy_ids', 'attribute', 'bonus_type', 'bonus', 'global_', 'personal', 'tier', 'rank_required')
-    column_labels = {
-        'hero_id': 'Hero',
-        'synergy_ids': 'Synergy Heroes',
-        'attribute': 'Attribute',
-        'bonus_type': 'Bonus Type',
-        'bonus': 'Bonus',
-        'global_': 'Global',
-        'personal': 'Personal',
-        'tier': 'Tier',
-        'rank_required': 'Rank Required'
-    }
-    def _display_hero_name(self, context, model, name):
-        hero = Hero.query.get(model.hero_id)
-        return hero.name if hero else model.hero_id
-    column_formatters = {
-        'hero_id': _display_hero_name
-    }
 # Synergies Editor page
 @app.route('/synergies-editor')
 def synergies_editor_page():
     return render_template('synergies_editor.html', active_nav='synergies')
-
-admin.add_view(SynergyDetailAdmin(SynergyDetail, db.session))
 
 
 # /heroes and / show only hero data
