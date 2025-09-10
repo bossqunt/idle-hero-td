@@ -1,85 +1,10 @@
 
-from flask import Flask, jsonify, send_file
-from flask import render_template_string, send_from_directory
-from streamlit import html
-app = Flask(__name__)
-
-# Endpoint to retrieve all heroes data
-@app.route("/heroes", methods=["GET"])
-def get_heroes():
-    return jsonify(hero_list)
-
-# Endpoint to retrieve all level-up milestone data
-@app.route("/levelup", methods=["GET"])
-def get_levelup():
-    return jsonify(monster_data)
-
-# New endpoint to return merged table data
-
-# Swagger UI endpoint
-@app.route("/docs")
-def swagger_ui():
-            html = """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>IdleHeroTD API Docs</title>
-                <link rel=\"stylesheet\" href=\"https://unpkg.com/swagger-ui-dist/swagger-ui.css\" />
-        </head>
-        <body>
-            <div id="swagger-ui"></div>
-            <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
-            <script>
-                window.onload = function() {
-                    SwaggerUIBundle({
-                        url: '/openapi.json',
-                        dom_id: '#swagger-ui'
-                    });
-                }
-            </script>
-        </body>
-        </html>
-        """
-            return render_template_string(html)
-
-# Serve OpenAPI spec
-@app.route("/openapi.json")
-def openapi_spec():
-        return send_from_directory(".", "openapi.json")
-
-
-@app.route("/table", methods=["GET"])
-def table():
-    hero_names = {str(hero["id"]): hero["name"] for hero in hero_list}
-    table = []
-    for monster_id, bonuses in monster_data.items():
-        row = {"hero": hero_names.get(monster_id, monster_id)}
-        for lvl in levels:
-            cell = None
-            for entry in bonuses:
-                if entry["level"] == lvl:
-                    sign = "+" if entry["bonus"] >= 0 else ""
-                    bonus_str = f"{sign}{entry['bonus']} {entry['attribute'].replace('_', ' ').title()}"
-                    if entry["bonus_type"] == "percent":
-                        bonus_str += "%"
-                    cell = {
-                        "bonus": bonus_str,
-                        "global": entry.get("global", False),
-                        "personal": entry.get("personal", False)
-                    }
-                    break
-            row[f"level {lvl}"] = cell if cell else {"bonus": "", "global": False, "personal": False}
-        table.append(row)
-    columns = ["hero"] + [f"level {lvl}" for lvl in levels]
-    return jsonify({"table": table, "columns": columns})
-
-
 synergies = [
     {
-        "hero_id": 1,  
+        "hero_id": 1,
         "synergies": [
             {
-                "synergy_ids": [2],  
+                "synergy_ids": [2],
                 "attribute": "damage",
                 "bonus_type": "percent",
                 "bonus": 10,
@@ -89,7 +14,7 @@ synergies = [
                 "rank_required": 0
             },
             {
-                "synergy_ids": [3,4], 
+                "synergy_ids": [3, 4],
                 "attribute": "skill_cooldown",
                 "bonus_type": "percent",
                 "bonus": 10,
@@ -99,7 +24,7 @@ synergies = [
                 "rank_required": 0
             },
             {
-                "synergy_ids": [13], 
+                "synergy_ids": [13],
                 "attribute": "kill_gold",
                 "bonus_type": "percent",
                 "bonus": 102,
@@ -109,7 +34,7 @@ synergies = [
                 "rank_required": 15
             },
             {
-                "synergy_ids": [5,20],  
+                "synergy_ids": [5, 20],
                 "attribute": "damage",
                 "bonus_type": "percent",
                 "bonus": 61,
@@ -118,10 +43,294 @@ synergies = [
                 "tier": 2,
                 "rank_required": 15
             },
+            {
+                "synergy_ids": [22],
+                "attribute": "crit_chance",
+                "bonus_type": "percent",
+                "bonus": 18,
+                "global": True,
+                "personal": False,
+                "tier": 3,
+                "rank_required": 50
+            },
+            {
+                "synergy_ids": [29, 33],
+                "attribute": "attack_speed",
+                "bonus_type": "percent",
+                "bonus": 112,
+                "global": False,
+                "personal": True,
+                "tier": 3,
+                "rank_required": 50
+            },
+            {
+                "synergy_ids": [11],
+                "attribute": "energy_income",
+                "bonus_type": "fixed",
+                "bonus": 1,
+                "global": True,
+                "personal": False,
+                "tier": 4,
+                "rank_required": 100
+            },
+            {
+                "synergy_ids": [30, 31],
+                "attribute": "super_gold_chance",
+                "bonus_type": "percent",
+                "bonus": 28,
+                "global": False,
+                "personal": True,
+                "tier": 4,
+                "rank_required": 100
+            },
+            {
+                "synergy_ids": [37],
+                "attribute": "super_exp_amount",
+                "bonus_type": "percent",
+                "bonus": 11,
+                "global": True,
+                "personal": False,
+                "tier": 5,
+                "rank_required": 150
+            },
+            {
+                "synergy_ids": [35, 27],
+                "attribute": "super_crit_chance",
+                "bonus_type": "percent",
+                "bonus": 28,
+                "global": False,
+                "personal": True,
+                "tier": 5,
+                "rank_required": 150
+            },
+            {
+                "synergy_ids": [36],
+                "attribute": "kill_gold",
+                "bonus_type": "percent",
+                "bonus": 561,
+                "global": True,
+                "personal": False,
+                "tier": 6,
+                "rank_required": 250
+            },
+            {
+                "synergy_ids": [40, 12],
+                "attribute": "damage",
+                "bonus_type": "percent",
+                "bonus": 673,
+                "global": False,
+                "personal": True,
+                "tier": 6,
+                "rank_required": 250
+            },
+            {
+                "synergy_ids": [27],
+                "attribute": "super_exp_amount",
+                "bonus_type": "percent",
+                "bonus": 22,
+                "global": True,
+                "personal": False,
+                "tier": 7,
+                "rank_required": 500
+            },
+            {
+                "synergy_ids": [23, 18],
+                "attribute": "energy_income",
+                "bonus_type": "fixed",
+                "bonus": 9,
+                "global": True,
+                "personal": False,
+                "tier": 7,
+                "rank_required": 500
+            },
+            {
+                "synergy_ids": [8, 22, 33],
+                "attribute": "energy_income",
+                "bonus_type": "fixed",
+                "bonus": 11,
+                "global": True,
+                "personal": False,
+                "tier": 8,
+                "rank_required": 1000
+            },
+            {
+                "synergy_ids": [7, 18, 33],
+                "attribute": "ultra_energy_amount",
+                "bonus_type": "percent",
+                "bonus": 84,
+                "global": True,
+                "personal": False,
+                "tier": 9,
+                "rank_required": 1500
+            }
         ]
     },
+    {
+        "hero_id": 2,
+        "synergies": [
+            {
+                "synergy_ids": [1],
+                "attribute": "attack_speed",
+                "bonus_type": "percent",
+                "bonus": 3,
+                "global": True,
+                "personal": False,
+                "tier": 1,
+                "rank_required": 0
+            },
+            {
+                "synergy_ids": [5, 6],
+                "attribute": "skill_cooldown",
+                "bonus_type": "percent",
+                "bonus": -4,
+                "global": True,
+                "personal": False,
+                "tier": 1,
+                "rank_required": 0
+            },
+            {
+                "synergy_ids": [26],
+                "attribute": "crit_damage",
+                "bonus_type": "percent",
+                "bonus": 45,
+                "global": True,
+                "personal": False,
+                "tier": 2,
+                "rank_required": 15
+            },
+            {
+                "synergy_ids": [17, 21],
+                "attribute": "damage",
+                "bonus_type": "percent",
+                "bonus": 168,
+                "global": False,
+                "personal": True,
+                "tier": 2,
+                "rank_required": 15
+            },
+            {
+                "synergy_ids": [25],
+                "attribute": "kill_gold",
+                "bonus_type": "percent",
+                "bonus": 224,
+                "global": False,
+                "personal": True,
+                "tier": 3,
+                "rank_required": 50
+            },
+            {
+                "synergy_ids": [10, 23],
+                "attribute": "crit_chance",
+                "bonus_type": "percent",
+                "bonus": 56,
+                "global": False,
+                "personal": True,
+                "tier": 3,
+                "rank_required": 50
+            },
+            {
+                "synergy_ids": [49],
+                "attribute": "super_exp_chance",
+                "bonus_type": "percent",
+                "bonus": 2,
+                "global": True,
+                "personal": False,
+                "tier": 4,
+                "rank_required": 100
+            },
+            {
+                "synergy_ids": [22,12],
+                "attribute": "super_energy_amount",
+                "bonus_type": "percent",
+                "bonus": 4,
+                "global": True,
+                "personal": False,
+                "tier": 4,
+                "rank_required": 100
+            },
+            {
+                "synergy_ids": [35],
+                "attribute": "super_gold_amount",
+                "bonus_type": "percent",
+                "bonus": 1234,
+                "global": False,
+                "personal": True,
+                "tier": 5,
+                "rank_required": 150
+            },
+            {
+                "synergy_ids": [24,13],
+                "attribute": "damage",
+                "bonus_type": "percent",
+                "bonus": 224,
+                "global": True,
+                "personal": False,
+                "tier": 5,
+                "rank_required": 150
+            },
+            {
+                "synergy_ids": [7],
+                "attribute": "skill_power",
+                "bonus_type": "percent",
+                "bonus": 6,
+                "global": True,
+                "personal": False,
+                "tier": 6,
+                "rank_required": 250
+            },
+                        {
+                "synergy_ids": [37,21],
+                "attribute": "kill_gold",
+                "bonus_type": "percent",
+                "bonus": 309,
+                "global": True,
+                "personal": False,
+                "tier": 6,
+                "rank_required": 250
+            },
+            {
+                "synergy_ids": [41],
+                "attribute": "skill_power",
+                "bonus_type": "percent",
+                "bonus": 17,
+                "global": False,
+                "personal": True,
+                "tier": 7,
+                "rank_required": 500
+            },
+            {
+                "synergy_ids": [39,31],
+                "attribute": "damage",
+                "bonus_type": "percent",
+                "bonus": 393,
+                "global": True,
+                "personal": False,
+                "tier": 7,
+                "rank_required": 500
+            },
+            {
+                "synergy_ids": [34, 13, 18],
+                "attribute": "super_crit_damage",
+                "bonus_type": "percent",
+                "bonus": 1122,
+                "global": True,
+                "personal": False,
+                "tier": 8,
+                "rank_required": 1000
+            },
+            {
+                "synergy_ids": [11,26, 41],
+                "attribute": "skill_power",
+                "bonus_type": "percent",
+                "bonus": 17,
+                "global": True,
+                "personal": False,
+                "tier": 9,
+                "rank_required": 1500
+            },
+        ]
+    }
 ]
-
 hero_list = [
     {"id": 1, "name": "Militia", "skill": "Spin Attack", "ability": "damage", "cd": 24, "description": "Instantly deal 300% damage to all enemies within range", "value": 300, "time": 1},
     {"id": 2, "name": "Apprentice", "skill": "Shield Slam", "cd": 10, "description": "Stuns an enemy and reduces incoming damage for 3s.", "value": 80, "time": 3},
@@ -167,17 +376,8 @@ hero_list = [
     {"id": 42, "name": "Veteran", "skill": "Thunder Strike", "cd": 7, "description": "Calls down lightning, striking up to 3 random enemies.", "value": 95, "time": 6}
 ]
 
-synergy_data = {
-    "tier": 2,
-    "hero": [101, 104, 109, 113],
-    "rank": 1,
-    "global": True,
-    "personal": False
-}
 
-levels = [25, 75, 150, 250, 500, 750, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7500]
-
-monster_data = {
+hero_data = {
         "1": [
         {"level": 25, "bonus": 10, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
         {"level": 75, "bonus": 1, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
@@ -685,154 +885,146 @@ monster_data = {
             ],
         "29": [
                     {"level": 25, "bonus": 1, "bonus_type": "fixed", "attribute": "rank_exp", "global": True, "personal": False},
-                    {"level": 25, "bonus": 8, "bonus_type": "percent", "attribute": "attack_speed", "global": True, "personal": False},
-                    {"level": 75, "bonus": 20, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                    {"level": 150, "bonus": 2, "bonus_type": "percent", "attribute": "crit_chance", "global": True, "personal": False},
-                    {"level": 250, "bonus": 15, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
-                    {"level": 500, "bonus": 50, "bonus_type": "percent", "attribute": "crit_damage", "global": False, "personal": True},
-                    {"level": 750, "bonus": 4, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
-                    {"level": 1000, "bonus": 15, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
-                    {"level": 1500, "bonus": -8, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
-                    {"level": 2000, "bonus": 4, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
-                    {"level": 2500, "bonus": 30, "bonus_type": "percent", "attribute": "super_gold_amount", "global": True, "personal": False},
-                    {"level": 3000, "bonus": 3, "bonus_type": "fixed", "attribute": "energy_income", "global": True, "personal": False},
-                    {"level": 3500, "bonus": 6, "bonus_type": "percent", "attribute": "ultra_crit_chance", "global": False, "personal": True},
+                    {"level": 75, "bonus": 25, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                    {"level": 150, "bonus": 3, "bonus_type": "percent", "attribute": "crit_chance", "global": True, "personal": False},
+                    {"level": 250, "bonus": 10, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
+                    {"level": 500, "bonus": 63, "bonus_type": "percent", "attribute": "crit_damage", "global": False, "personal": True},
+                    {"level": 750, "bonus": 5, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
+                    {"level": 1000, "bonus": 19, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
+                    {"level": 1500, "bonus": -10, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
+                    {"level": 2000, "bonus": 5, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
+                    {"level": 2500, "bonus": 38, "bonus_type": "percent", "attribute": "super_gold_amount", "global": True, "personal": False},
+                    {"level": 3000, "bonus": 4, "bonus_type": "fixed", "attribute": "energy_income", "global": True, "personal": False},
+                    {"level": 3500, "bonus": 8, "bonus_type": "percent", "attribute": "ultra_crit_chance", "global": False, "personal": True},
                     {"level": 4000, "bonus": 1, "bonus_type": "percent", "attribute": "ultra_energy_chance", "global": True, "personal": False},
-                    {"level": 5000, "bonus": 8, "bonus_type": "percent", "attribute": "super_crit_chance", "global": False, "personal": True},
-                    {"level": 6000, "bonus": 15, "bonus_type": "percent", "attribute": "crit_chance", "global": True, "personal": False},
-                    {"level": 7500, "bonus": 25, "bonus_type": "percent", "attribute": "ultra_energy_amount", "global": True, "personal": False}
+                    {"level": 5000, "bonus": 10, "bonus_type": "percent", "attribute": "super_crit_chance", "global": False, "personal": True},
+                    {"level": 6000, "bonus": 19, "bonus_type": "percent", "attribute": "crit_chance", "global": True, "personal": False},
+                    {"level": 7500, "bonus": 31, "bonus_type": "percent", "attribute": "ultra_energy_amount", "global": True, "personal": False}
                 ],
         "30": [
-                        {"level": 25, "bonus": 3, "bonus_type": "percent", "attribute": "damage", "global": True, "personal": False},
+                        {"level": 25, "bonus": 4, "bonus_type": "percent", "attribute": "damage", "global": True, "personal": False},
                         {"level": 75, "bonus": 1, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
-                        {"level": 150, "bonus": -3, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
-                        {"level": 250, "bonus": 10, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
-                        {"level": 500, "bonus": 12, "bonus_type": "percent", "attribute": "crit_chance", "global": False, "personal": True},
-                        {"level": 750, "bonus": 18, "bonus_type": "percent", "attribute": "kill_gold", "global": True, "personal": False},
-                        {"level": 1000, "bonus": 5, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
-                        {"level": 1500, "bonus": 40, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
-                        {"level": 2000, "bonus": 27, "bonus_type": "percent", "attribute": "super_crit_damage", "global": True, "personal": False},
-                        {"level": 2500, "bonus": 10, "bonus_type": "percent", "attribute": "super_exp_amount", "global": True, "personal": False},
-                        {"level": 3000, "bonus": 125, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                        {"level": 3500, "bonus": 42, "bonus_type": "percent", "attribute": "ultra_gold_amount", "global": False, "personal": True},
-                        {"level": 4000, "bonus": 3, "bonus_type": "percent", "attribute": "ultra_exp_chance", "global": True, "personal": False},
-                        {"level": 5000, "bonus": 200, "bonus_type": "percent", "attribute": "super_gold_amount", "global": True, "personal": False},
-                        {"level": 6000, "bonus": 20, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
-                        {"level": 7500, "bonus": 300, "bonus_type": "percent", "attribute": "ultra_gold_amount", "global": True, "personal": False}
+                        {"level": 150, "bonus": -4, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
+                        {"level": 250, "bonus": 13, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
+                        {"level": 500, "bonus": 15, "bonus_type": "percent", "attribute": "crit_chance", "global": False, "personal": True},
+                        {"level": 750, "bonus": 23, "bonus_type": "percent", "attribute": "kill_gold", "global": True, "personal": False},
+                        {"level": 1000, "bonus": 6, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
+                        {"level": 1500, "bonus": 50, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
+                        {"level": 2000, "bonus": 34, "bonus_type": "percent", "attribute": "super_crit_damage", "global": True, "personal": False},
+                        {"level": 2500, "bonus": 13, "bonus_type": "percent", "attribute": "super_exp_amount", "global": True, "personal": False},
+                        {"level": 3000, "bonus": 156, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                        {"level": 3500, "bonus": 53, "bonus_type": "percent", "attribute": "ultra_gold_amount", "global": False, "personal": True},
+                        {"level": 4000, "bonus": 4, "bonus_type": "percent", "attribute": "ultra_exp_chance", "global": True, "personal": False},
+                        {"level": 5000, "bonus": 250, "bonus_type": "percent", "attribute": "super_gold_amount", "global": True, "personal": False},
+                        {"level": 6000, "bonus": 25, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
+                        {"level": 7500, "bonus": 375, "bonus_type": "percent", "attribute": "ultra_gold_amount", "global": True, "personal": False}
                     ],
         "31": [
-                            {"level": 25, "bonus": 5, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
+                            {"level": 25, "bonus": 6, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
                             {"level": 75, "bonus": 1, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
-                            {"level": 150, "bonus": 6, "bonus_type": "percent", "attribute": "attack_speed", "global": True, "personal": False},
-                            {"level": 250, "bonus": -4, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
-                            {"level": 500, "bonus": 50, "bonus_type": "percent", "attribute": "crit_damage", "global": False, "personal": True},
-                            {"level": 750, "bonus": 60, "bonus_type": "percent", "attribute": "kill_gold", "global": False, "personal": True},
-                            {"level": 1000, "bonus": 5, "bonus_type": "percent", "attribute": "crit_chance", "global": True, "personal": False},
-                            {"level": 1500, "bonus": 3, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
-                            {"level": 2000, "bonus": 90, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                            {"level": 2500, "bonus": 10, "bonus_type": "percent", "attribute": "super_exp_amount", "global": True, "personal": False},
-                            {"level": 3000, "bonus": 36, "bonus_type": "percent", "attribute": "ultra_crit_damage", "global": True, "personal": False},
-                            {"level": 3500, "bonus": 42, "bonus_type": "percent", "attribute": "damage", "global": True, "personal": False},
-                            {"level": 4000, "bonus": 8, "bonus_type": "percent", "attribute": "ultra_gold_chance", "global": False, "personal": True},
-                            {"level": 5000, "bonus": 4, "bonus_type": "percent", "attribute": "ultra_exp_chance", "global": True, "personal": False},
-                            {"level": 6000, "bonus": 8, "bonus_type": "fixed", "attribute": "energy_income", "global": True, "personal": False},
-                            {"level": 7500, "bonus": 25, "bonus_type": "fixed", "attribute": "skill_power", "global": True, "personal": False}
+                            {"level": 150, "bonus": 8, "bonus_type": "percent", "attribute": "attack_speed", "global": True, "personal": False},
+                            {"level": 250, "bonus": -5, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
+                            {"level": 500, "bonus": 63, "bonus_type": "percent", "attribute": "crit_damage", "global": False, "personal": True},
+                            {"level": 750, "bonus": 75, "bonus_type": "percent", "attribute": "kill_gold", "global": False, "personal": True},
+                            {"level": 1000, "bonus": 6, "bonus_type": "percent", "attribute": "crit_chance", "global": True, "personal": False},
+                            {"level": 1500, "bonus": 4, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
+                            {"level": 2000, "bonus": 113, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                            {"level": 2500, "bonus": 13, "bonus_type": "percent", "attribute": "super_exp_amount", "global": True, "personal": False},
+                            {"level": 3000, "bonus": 45, "bonus_type": "percent", "attribute": "ultra_crit_damage", "global": True, "personal": False},
+                            {"level": 3500, "bonus": 53, "bonus_type": "percent", "attribute": "damage", "global": True, "personal": False},
+                            {"level": 4000, "bonus": 10, "bonus_type": "percent", "attribute": "ultra_gold_chance", "global": False, "personal": True},
+                            {"level": 5000, "bonus": 5, "bonus_type": "percent", "attribute": "ultra_exp_chance", "global": True, "personal": False},
+                            {"level": 6000, "bonus": 10, "bonus_type": "fixed", "attribute": "energy_income", "global": True, "personal": False},
+                            {"level": 7500, "bonus": 31, "bonus_type": "fixed", "attribute": "skill_power", "global": True, "personal": False}
                         ],
         "32": [
-                                {"level": 25, "bonus": 5, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
-                                {"level": 75, "bonus": 10, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
-                                {"level": 150, "bonus": -8, "bonus_type": "percent", "attribute": "skill_cooldown", "global": False, "personal": True},
+                                {"level": 25, "bonus": 6, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
+                                {"level": 75, "bonus": 13, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
+                                {"level": 150, "bonus": -10, "bonus_type": "percent", "attribute": "skill_cooldown", "global": False, "personal": True},
                                 {"level": 250, "bonus": 1, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
-                                {"level": 500, "bonus": 5, "bonus_type": "fixed", "attribute": "rank_exp", "global": True, "personal": False},
-                                {"level": 750, "bonus": 18, "bonus_type": "percent", "attribute": "damage", "global": True, "personal": False},
-                                {"level": 1000, "bonus": 15, "bonus_type": "percent", "attribute": "crit_chance", "global": False, "personal": True},
-                                {"level": 1500, "bonus": 2, "bonus_type": "percent", "attribute": "super_gold_chance", "global": True, "personal": False},
-                                {"level": 2000, "bonus": 7, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
-                                {"level": 2500, "bonus": 30, "bonus_type": "percent", "attribute": "super_crit_damage", "global": True, "personal": False},
-                                {"level": 3000, "bonus": 10, "bonus_type": "percent", "attribute": "ultra_exp_amount", "global": True, "personal": False},
-                                {"level": 3500, "bonus": 150, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                                {"level": 4000, "bonus": 5, "bonus_type": "fixed", "attribute": "energy_income", "global": True, "personal": False},
-                                {"level": 5000, "bonus": 22, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
-                                {"level": 6000, "bonus": 100, "bonus_type": "percent", "attribute": "ultra_gold_amount", "global": True, "personal": False},
-                                {"level": 7500, "bonus": 8, "bonus_type": "percent", "attribute": "range", "global": True, "personal": False}
+                                {"level": 500, "bonus": 6, "bonus_type": "fixed", "attribute": "rank_exp", "global": True, "personal": False},
+                                {"level": 750, "bonus": 23, "bonus_type": "percent", "attribute": "damage", "global": True, "personal": False},
+                                {"level": 1000, "bonus": 19, "bonus_type": "percent", "attribute": "crit_chance", "global": False, "personal": True},
+                                {"level": 1500, "bonus": 3, "bonus_type": "percent", "attribute": "super_gold_chance", "global": True, "personal": False},
+                                {"level": 2000, "bonus": 9, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
+                                {"level": 2500, "bonus": 38, "bonus_type": "percent", "attribute": "super_crit_damage", "global": True, "personal": False},
+                                {"level": 3000, "bonus": 13, "bonus_type": "percent", "attribute": "ultra_exp_amount", "global": True, "personal": False},
+                                {"level": 3500, "bonus": 188, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                                {"level": 4000, "bonus": 6, "bonus_type": "fixed", "attribute": "energy_income", "global": True, "personal": False},
+                                {"level": 5000, "bonus": 28, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
+                                {"level": 6000, "bonus": 125, "bonus_type": "percent", "attribute": "ultra_gold_amount", "global": True, "personal": False},
+                                {"level": 7500, "bonus": 10, "bonus_type": "percent", "attribute": "range", "global": True, "personal": False}
                             ],
         "33": [
-                                    {"level": 25, "bonus": 2, "bonus_type": "percent", "attribute": "attack_speed", "global": True, "personal": False},
+                                    {"level": 25, "bonus": 3, "bonus_type": "percent", "attribute": "attack_speed", "global": True, "personal": False},
                                     {"level": 75, "bonus": 1, "bonus_type": "percent", "attribute": "crit_chance", "global": True, "personal": False},
-                                    {"level": 150, "bonus": 30, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                                    {"level": 250, "bonus": 12, "bonus_type": "percent", "attribute": "kill_gold", "global": True, "personal": False},
-                                    {"level": 500, "bonus": 2, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
-                                    {"level": 750, "bonus": 60, "bonus_type": "percent", "attribute": "crit_damage", "global": False, "personal": True},
-                                    {"level": 1000, "bonus": 8, "bonus_type": "fixed", "attribute": "rank_exp", "global": True, "personal": False},
-                                    {"level": 1500, "bonus": 17, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
-                                    {"level": 2000, "bonus": 7, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
-                                    {"level": 2500, "bonus": -22, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
-                                    {"level": 3000, "bonus": 36, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                                    {"level": 3500, "bonus": 2, "bonus_type": "percent", "attribute": "ultra_crit_chance", "global": True, "personal": False},
-                                    {"level": 4000, "bonus": 175, "bonus_type": "percent", "attribute": "ultra_gold_amount", "global": False, "personal": True},
-                                    {"level": 5000, "bonus": 6, "bonus_type": "fixed", "attribute": "energy_income", "global": True, "personal": False},
-                                    {"level": 6000, "bonus": 3, "bonus_type": "percent", "attribute": "ultra_energy_chance", "global": True, "personal": False},
-                                    {"level": 7500, "bonus": 15, "bonus_type": "percent", "attribute": "power_mage_energy", "global": True, "personal": False}
+                                    {"level": 150, "bonus": 38, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                                    {"level": 250, "bonus": 15, "bonus_type": "percent", "attribute": "kill_gold", "global": True, "personal": False},
+                                    {"level": 500, "bonus": 3, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
+                                    {"level": 750, "bonus": 75, "bonus_type": "percent", "attribute": "crit_damage", "global": False, "personal": True},
+                                    {"level": 1000, "bonus": 10, "bonus_type": "fixed", "attribute": "rank_exp", "global": True, "personal": False},
+                                    {"level": 1500, "bonus": 21, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
+                                    {"level": 2000, "bonus": 9, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
+                                    {"level": 2500, "bonus": -28, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
+                                    {"level": 3000, "bonus": 45, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                                    {"level": 3500, "bonus": 3, "bonus_type": "percent", "attribute": "ultra_crit_chance", "global": True, "personal": False},
+                                    {"level": 4000, "bonus": 219, "bonus_type": "percent", "attribute": "ultra_gold_amount", "global": False, "personal": True},
+                                    {"level": 5000, "bonus": 8, "bonus_type": "fixed", "attribute": "energy_income", "global": True, "personal": False},
+                                    {"level": 6000, "bonus": 4, "bonus_type": "percent", "attribute": "ultra_energy_chance", "global": True, "personal": False},
+                                    {"level": 7500, "bonus": 19, "bonus_type": "percent", "attribute": "power_mage_energy", "global": True, "personal": False}
                                 ],
         "34": [
                                         {"level": 25, "bonus": -1, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
-                                        {"level": 75, "bonus": 7, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
-                                        {"level": 150, "bonus": 2, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
-                                        {"level": 250, "bonus": 12, "bonus_type": "percent", "attribute": "damage", "global": True, "personal": False},
-                                        {"level": 500, "bonus": 12, "bonus_type": "percent", "attribute": "crit_chance", "global": False, "personal": True},
-                                        {"level": 750, "bonus": 30, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
-                                        {"level": 1000, "bonus": 8, "bonus_type": "fixed", "attribute": "rank_exp", "global": True, "personal": False},
-                                        {"level": 1500, "bonus": 3, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
-                                        {"level": 2000, "bonus": 27, "bonus_type": "percent", "attribute": "super_gold_amount", "global": True, "personal": False},
-                                        {"level": 2500, "bonus": 30, "bonus_type": "percent", "attribute": "super_crit_damage", "global": False, "personal": True},
-                                        {"level": 3000, "bonus": 125, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                                        {"level": 3500, "bonus": 4, "bonus_type": "fixed", "attribute": "energy_income", "global": True, "personal": False},
-                                        {"level": 4000, "bonus": 3, "bonus_type": "percent", "attribute": "ultra_exp_chance", "global": True, "personal": False},
-                                        {"level": 5000, "bonus": 25, "bonus_type": "percent", "attribute": "ultra_exp_amount", "global": True, "personal": False},
-                                        {"level": 6000, "bonus": 25, "bonus_type": "percent", "attribute": "attack_speed", "global": True, "personal": False},
-                                        {"level": 7500, "bonus": 30, "bonus_type": "percent", "attribute": "super_crit_chance", "global": True, "personal": False}
+                                        {"level": 75, "bonus": 9, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
+                                        {"level": 150, "bonus": 3, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
+                                        {"level": 250, "bonus": 15, "bonus_type": "percent", "attribute": "damage", "global": True, "personal": False},
+                                        {"level": 500, "bonus": 15, "bonus_type": "percent", "attribute": "crit_chance", "global": False, "personal": True},
+                                        {"level": 750, "bonus": 38, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
+                                        {"level": 1000, "bonus": 10, "bonus_type": "fixed", "attribute": "rank_exp", "global": True, "personal": False},
+                                        {"level": 1500, "bonus": 4, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
+                                        {"level": 2000, "bonus": 34, "bonus_type": "percent", "attribute": "super_gold_amount", "global": True, "personal": False},
+                                        {"level": 2500, "bonus": 38, "bonus_type": "percent", "attribute": "super_crit_damage", "global": False, "personal": True},
+                                        {"level": 3000, "bonus": 156, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                                        {"level": 3500, "bonus": 5, "bonus_type": "fixed", "attribute": "energy_income", "global": True, "personal": False},
+                                        {"level": 4000, "bonus": 4, "bonus_type": "percent", "attribute": "ultra_exp_chance", "global": True, "personal": False},
+                                        {"level": 5000, "bonus": 31, "bonus_type": "percent", "attribute": "ultra_exp_amount", "global": True, "personal": False},
+                                        {"level": 6000, "bonus": 31, "bonus_type": "percent", "attribute": "attack_speed", "global": True, "personal": False},
+                                        {"level": 7500, "bonus": 38, "bonus_type": "percent", "attribute": "super_crit_chance", "global": True, "personal": False}
                                     ],
         "35": [
-                                            {"level": 25, "bonus": 10, "bonus_type": "percent", "attribute": "crit_damage", "global": False, "personal": True},
-                                            {"level": 75, "bonus": 20, "bonus_type": "percent", "attribute": "kill_gold", "global": False, "personal": True},
-                                            {"level": 150, "bonus": 8, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
-                                            {"level": 250, "bonus": 2, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
-                                            {"level": 500, "bonus": 10, "bonus_type": "percent", "attribute": "attack_speed", "global": True, "personal": False},
-                                            {"level": 750, "bonus": 6, "bonus_type": "fixed", "attribute": "rank_exp", "global": True, "personal": False},
-                                            {"level": 1000, "bonus": 3, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
-                                            {"level": 1500, "bonus": 80, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                                            {"level": 2000, "bonus": 4, "bonus_type": "percent", "attribute": "super_crit_chance", "global": True, "personal": False},
-                                            {"level": 2500, "bonus": -22, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
-                                            {"level": 3000, "bonus": 36, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                                            {"level": 3500, "bonus": 2, "bonus_type": "percent", "attribute": "ultra_gold_chance", "global": True, "personal": False},
-                                            {"level": 4000, "bonus": 7, "bonus_type": "percent", "attribute": "super_exp_chance", "global": True, "personal": False},
-                                            {"level": 5000, "bonus": 75, "bonus_type": "percent", "attribute": "ultra_gold_amount", "global": True, "personal": False},
-                                            {"level": 6000, "bonus": 5, "bonus_type": "percent", "attribute": "ultra_exp_chance", "global": True, "personal": False},
-                                            {"level": 7500, "bonus": 8, "bonus_type": "fixed", "attribute": "skill_power", "global": True, "personal": False}
+                                            {"level": 25, "bonus": 13, "bonus_type": "percent", "attribute": "crit_damage", "global": False, "personal": True},
+                                            {"level": 75, "bonus": 25, "bonus_type": "percent", "attribute": "kill_gold", "global": False, "personal": True},
+                                            {"level": 150, "bonus": 10, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
+                                            {"level": 250, "bonus": 3, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
+                                            {"level": 500, "bonus": 13, "bonus_type": "percent", "attribute": "attack_speed", "global": True, "personal": False},
+                                            {"level": 750, "bonus": 8, "bonus_type": "fixed", "attribute": "rank_exp", "global": True, "personal": False},
+                                            {"level": 1000, "bonus": 4, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
+                                            {"level": 1500, "bonus": 100, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                                            {"level": 2000, "bonus": 5, "bonus_type": "percent", "attribute": "super_crit_chance", "global": True, "personal": False},
+                                            {"level": 2500, "bonus": -28, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
+                                            {"level": 3000, "bonus": 45, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                                            {"level": 3500, "bonus": 3, "bonus_type": "percent", "attribute": "ultra_gold_chance", "global": True, "personal": False},
+                                            {"level": 4000, "bonus": 9, "bonus_type": "percent", "attribute": "super_exp_chance", "global": True, "personal": False},
+                                            {"level": 5000, "bonus": 94, "bonus_type": "percent", "attribute": "ultra_gold_amount", "global": True, "personal": False},
+                                            {"level": 6000, "bonus": 6, "bonus_type": "percent", "attribute": "ultra_exp_chance", "global": True, "personal": False},
+                                            {"level": 7500, "bonus": 10, "bonus_type": "fixed", "attribute": "skill_power", "global": True, "personal": False}
                                         ],
         "36": [
                                                 {"level": 25, "bonus": 1, "bonus_type": "fixed", "attribute": "skill_power", "global": False, "personal": True},
                                                 {"level": 75, "bonus": 1, "bonus_type": "fixed", "attribute": "skill_duration", "global": False, "personal": True},
-                                                {"level": 150, "bonus": 9, "bonus_type": "percent", "attribute": "crit_damage", "global": True, "personal": False},
-                                                {"level": 250, "bonus": -4, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
-                                                {"level": 500, "bonus": 25, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
-                                                {"level": 750, "bonus": 13, "bonus_type": "percent", "attribute": "crit_chance", "global": False, "personal": True},
-                                                {"level": 1000, "bonus": 15, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
-                                                {"level": 1500, "bonus": 8, "bonus_type": "percent", "attribute": "super_gold_chance", "global": False, "personal": True},
-                                                {"level": 2000, "bonus": 7, "bonus_type": "percent", "attribute": "super_exp_amount", "global": True, "personal": False},
-                                                {"level": 2500, "bonus": 30, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                                                {"level": 3000, "bonus": 10, "bonus_type": "percent", "attribute": "ultra_exp_amount", "global": True, "personal": False},
-                                                {"level": 3500, "bonus": 150, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
-                                                {"level": 4000, "bonus": 175, "bonus_type": "percent", "attribute": "ultra_crit_damage", "global": False, "personal": True},
-                                                {"level": 5000, "bonus": 65, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
-                                                {"level": 6000, "bonus": 25, "bonus_type": "percent", "attribute": "super_crit_chance", "global": False, "personal": True},
-                                                {"level": 7500, "bonus": 125, "bonus_type": "percent", "attribute": "super_crit_damage", "global": True, "personal": False}
+                                                {"level": 150, "bonus": 11, "bonus_type": "percent", "attribute": "crit_damage", "global": True, "personal": False},
+                                                {"level": 250, "bonus": -5, "bonus_type": "percent", "attribute": "skill_cooldown", "global": True, "personal": False},
+                                                {"level": 500, "bonus": 31, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
+                                                {"level": 750, "bonus": 16, "bonus_type": "percent", "attribute": "crit_chance", "global": False, "personal": True},
+                                                {"level": 1000, "bonus": 19, "bonus_type": "percent", "attribute": "range", "global": False, "personal": True},
+                                                {"level": 1500, "bonus": 10, "bonus_type": "percent", "attribute": "super_gold_chance", "global": False, "personal": True},
+                                                {"level": 2000, "bonus": 9, "bonus_type": "percent", "attribute": "super_exp_amount", "global": True, "personal": False},
+                                                {"level": 2500, "bonus": 38, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                                                {"level": 3000, "bonus": 13, "bonus_type": "percent", "attribute": "ultra_exp_amount", "global": True, "personal": False},
+                                                {"level": 3500, "bonus": 188, "bonus_type": "percent", "attribute": "damage", "global": False, "personal": True},
+                                                {"level": 4000, "bonus": 219, "bonus_type": "percent", "attribute": "ultra_crit_damage", "global": False, "personal": True},
+                                                {"level": 5000, "bonus": 81, "bonus_type": "percent", "attribute": "attack_speed", "global": False, "personal": True},
+                                                {"level": 6000, "bonus": 31, "bonus_type": "percent", "attribute": "super_crit_chance", "global": False, "personal": True},
+                                                {"level": 7500, "bonus": 156, "bonus_type": "percent", "attribute": "super_crit_damage", "global": True, "personal": False}
                                             ],
     }
-
-@app.route("/", methods=["GET"])
-def index():
-    return send_file("levelup_table.html")
-
-if __name__ == "__main__":
-    app.run(debug=True)

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<div class="container">
+  <div class="wiki-header">Hero Synergies</div>
+  <div class="wiki-subheader">View all hero synergies and their bonuses</div>
+  <button id="toggle-edit" class="btn btn-secondary mb-2">Edit</button>
+  <div class="milestone-matrix">
+    <table class="table table-bordered" id="synergy-table">
+      <thead>
+        <tr>
+          <th>Hero</th>
+          <th>Tier</th>
+          <th>Synergy Heroes</th>
+          <th>Bonus</th>
+          <th>Rank Required</th>
+          <th class="edit-only" style="display:none;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in synergy_rows %}
+        <tr data-id="{{ row.id if row.id is defined else '' }}">
+          <td>
+            <span class="view-only">{{ row.hero_name }}</span>
+            <select class="form-select form-select-sm hero-select edit-only" style="display:none;">
+              {% for hid, hname in hero_names.items() %}
+                <option value="{{ hid }}"{% if hid == row.hero_name %} selected{% endif %}>{{ hname }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <span class="view-only">{{ row.tier }}</span>
+            <select class="form-select form-select-sm tier-select edit-only" style="display:none;">
+              {% for t in range(1, 5) %}
+                <option value="{{ t }}"{% if t == row.tier %} selected{% endif %}>{{ t }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <span class="view-only">
+              {% for sid in row.synergy_ids %}
+                <span class="badge bg-primary ms-1">{{ hero_names[sid] if sid in hero_names else sid }}</span>
+              {% endfor %}
+            </span>
+            <select class="form-select form-select-sm synergy-select edit-only" multiple style="width: 180px; display:none;">
+              {% for hid, hname in hero_names.items() %}
+                <option value="{{ hid }}"{% if hid in row.synergy_ids %} selected{% endif %}>{{ hname }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <span class="view-only">
+              {% if row.bonus_type == 'percent' %}
+                +{{ row.bonus }}% {{ row.attribute.replace('_',' ') }}
+              {% else %}
+                +{{ row.bonus }} {{ row.attribute.replace('_',' ') }}
+              {% endif %}
+              {% if row.global %}<span class="badge bg-success ms-1">GLOBAL</span>{% endif %}
+              {% if row.personal %}<span class="badge bg-warning ms-1">PERSONAL</span>{% endif %}
+            </span>
+            <input type="number" class="form-control form-control-sm bonus-input edit-only" value="{{ row.bonus }}" style="display:none;">
+            <select class="form-select form-select-sm bonus-type-select edit-only" style="display:none;">
+              <option value="percent"{% if row.bonus_type == 'percent' %} selected{% endif %}>%</option>
+              <option value="fixed"{% if row.bonus_type == 'fixed' %} selected{% endif %}>Fixed</option>
+            </select>
+            <select class="form-select form-select-sm attr-select edit-only" style="display:none;">
+              <option value="{{ row.attribute }}" selected>{{ row.attribute.replace('_',' ') }}</option>
+            </select>
+            <input type="checkbox" class="form-check-input global-check edit-only"{% if row.global %} checked{% endif %} style="display:none;">
+            <input type="checkbox" class="form-check-input personal-check edit-only"{% if row.personal %} checked{% endif %} style="display:none;">
+          </td>
+          <td>
+            <span class="view-only">{{ row.rank_required }}</span>
+            <select class="form-select form-select-sm rank-select edit-only" style="display:none;">
+              {% for r in range(0, 101, 5) %}
+                <option value="{{ r }}"{% if r == row.rank_required %} selected{% endif %}>{{ r }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td class="edit-only" style="display:none;">
+            <button class="btn btn-sm btn-primary save-btn">Save</button>
+            <button class="btn btn-sm btn-danger delete-btn">Delete</button>
+          </td>
+        </tr>
+        {% endfor %}
+        <!-- Add row button (edit mode only) -->
+        <tr class="edit-only" style="display:none;">
+          <td colspan="6"><button class="btn btn-success w-100 add-btn">Add New Synergy</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<!-- jQuery (required for Select2) -->
+
+<!-- Include Select2 for searchable multi-select -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Only activate Select2 on visible synergy-selects (edit mode)
+  function activateSelect2() {
+    $('.synergy-select:visible').each(function() {
+      if (!$(this).hasClass('select2-hidden-accessible')) {
+        $(this).select2({
+          placeholder: 'Select synergy heroes',
+          allowClear: true,
+          maximumSelectionLength: 4,
+          width: 'resolve'
+        });
+      }
+    });
+  }
+  function destroySelect2() {
+    $('.synergy-select').each(function() {
+      if ($(this).hasClass('select2-hidden-accessible')) {
+        $(this).select2('destroy');
+      }
+    });
+  }
+  // Toggle view/edit mode
+  let editMode = false;
+  function setEditMode(on) {
+    editMode = on;
+    if (editMode) {
+      $('.edit-only').show();
+      $('.view-only').hide();
+      $('#toggle-edit').text('View');
+      activateSelect2();
+    } else {
+      $('.edit-only').hide();
+      $('.view-only').show();
+      $('#toggle-edit').text('Edit');
+      destroySelect2();
+    }
+  }
+  setEditMode(false);
+  $('#toggle-edit').on('click', function() {
+    setEditMode(!editMode);
+  });
+
+  // Add new synergy row
+  $('#synergy-table').on('click', '.add-btn', function() {
+    // Get hero options
+    var heroOptions = $('#synergy-table .hero-select:first').html();
+    var attrOptions = $('#synergy-table .attr-select:first').html();
+    var bonusTypeOptions = $('#synergy-table .bonus-type-select:first').html();
+    var tierOptions = $('#synergy-table .tier-select:first').html();
+    var rankOptions = $('#synergy-table .rank-select:first').html();
+    var synergyOptions = $('#synergy-table .synergy-select:first').html();
+    var newRow = `<tr>
+      <td><select class="form-select form-select-sm hero-select">${heroOptions}</select></td>
+      <td><select class="form-select form-select-sm tier-select">${tierOptions}</select></td>
+      <td><select class="form-select form-select-sm synergy-select" multiple style="width: 180px;">${synergyOptions}</select></td>
+      <td>
+        <input type="number" class="form-control form-control-sm bonus-input" value="">
+        <select class="form-select form-select-sm bonus-type-select">${bonusTypeOptions}</select>
+        <select class="form-select form-select-sm attr-select">${attrOptions}</select>
+        <input type="checkbox" class="form-check-input global-check"> Global
+        <input type="checkbox" class="form-check-input personal-check"> Personal
+      </td>
+      <td><select class="form-select form-select-sm rank-select">${rankOptions}</select></td>
+      <td><button class="btn btn-sm btn-primary save-btn">Save</button><button class="btn btn-sm btn-danger delete-btn">Delete</button></td>
+    </tr>`;
+    // Insert before the add row button
+    $(this).closest('tr').before(newRow);
+    activateSelect2();
+  });
+  // TODO: Add event listeners for save, delete actions (AJAX)
+});
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <div class="wiki-header">Hero Milestones</div>
+  <div class="wiki-subheader">Compare hero milestone bonuses across all levels</div>
+  <div class="filter-bar mb-3">
+    <button class="btn btn-light filter-btn active" data-attr="All">All</button>
+    {% for attr in attributes %}
+    <button class="btn btn-light filter-btn" data-attr="{{ attr }}">{{ attr.replace('_', ' ').title() }}</button>
+    {% endfor %}
+  </div>
+  <div class="milestone-matrix">
+    <table id="levelup-table">
+      <thead>
+        <tr>
+          <th>Hero</th>
+          {% for level in levels %}
+          <th>L{{ level }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in hero_rows %}
+        <tr>
+          <td class="hero">{{ row.name }}</td>
+          {% for level in levels %}
+          {% set bonus = row.bonuses.get(level) %}
+          <td class="bonus" data-attribute="{{ bonus.attribute if bonus else '' }}">
+            {% if bonus %}
+              <span>{{ bonus.bonus }}{% if bonus.bonus_type == 'percent' %}%{% endif %} {{ bonus.attribute.replace('_', ' ') }}</span>
+              {% if bonus.global %}<span class="badge bg-success ms-1">GLOBAL</span>{% endif %}
+              {% if bonus.personal %}<span class="badge bg-warning ms-1">PERSONAL</span>{% endif %}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const attr = this.getAttribute('data-attr');
+    document.querySelectorAll('#levelup-table td.bonus').forEach(td => {
+      if (attr === 'All' || td.getAttribute('data-attribute') === attr) {
+        td.style.background = attr === 'All' ? '' : '#bbf7d0';
+      } else {
+        td.style.background = '';
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

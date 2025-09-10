@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <div class="wiki-header">Heroes</div>
+  <div class="wiki-subheader">All hero stats and abilities</div>
+  <div class="milestone-matrix">
+    <table>
+      <thead>
+        <tr>
+          <th>Hero</th>
+          <th>Skill</th>
+          <th>Ability</th>
+          <th>Cooldown</th>
+          <th>Description</th>
+          <th>Value</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for hero in heroes %}
+        <tr>
+          <td class="hero">{{ hero.name }}</td>
+          <td>{{ hero.skill }}</td>
+          <td>{{ hero.ability or '-' }}</td>
+          <td>{{ hero.cd }}</td>
+          <td>{{ hero.description }}</td>
+          <td class="bonus">{{ hero.value }}</td>
+          <td>{{ hero.time }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
