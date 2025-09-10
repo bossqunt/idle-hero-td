@@ -1,46 +1,22 @@
 from flask import Flask, jsonify, request, Response
 import json
+from api import api
 from flask import render_template
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from wtforms.fields import SelectField, SelectMultipleField
-from flask_sqlalchemy import SQLAlchemy
-from collections import OrderedDict
+import os
 import sqlite3
+from models import db, Hero, SynergyDetail, basedir
+
 
 app = Flask(__name__)
+app.register_blueprint(api)
 app.secret_key = "idleherotd-super-secret-key-2025"
-import os
-basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'idleherotd.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
+db.init_app(app)
 admin = Admin(app, name='Idle Hero TD Admin', template_mode='bootstrap3')
-
-# SQLAlchemy models
-class Hero(db.Model):
-    __tablename__ = 'heroes'
-    hero_id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    skill = db.Column(db.String)
-    ability = db.Column(db.String)
-    cd = db.Column(db.Integer)
-    description = db.Column(db.String)
-    value = db.Column(db.Integer)
-    time = db.Column(db.Integer)
-
-class SynergyDetail(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    hero_id = db.Column(db.Integer)
-    synergy_ids = db.Column(db.String)
-    attribute = db.Column(db.String)
-    bonus_type = db.Column(db.String)
-    bonus = db.Column(db.Integer)
-    global_ = db.Column(db.Boolean)
-    personal = db.Column(db.Boolean)
-    tier = db.Column(db.Integer)
-    rank_required = db.Column(db.Integer)
 
 
 # Custom SynergyDetail admin view
@@ -108,157 +84,30 @@ class SynergyDetailAdmin(ModelView):
 def synergies_editor_page():
     return render_template('synergies_editor.html', active_nav='synergies')
 
-# API endpoints for editor
-@app.route('/api/synergies')
-def api_synergies():
-    conn = sqlite3.connect(os.path.join(basedir, 'idleherotd.db'))
-    cursor = conn.cursor()
-    cursor.execute('SELECT hero_id, synergy_ids, attribute, bonus_type, bonus, `global`, `personal`, tier, rank_required FROM synergy_details')
-    rows = []
-    for row in cursor.fetchall():
-        ids = []
-        synergy_name = None
-        for sid in row[2].split(','):
-            sid = sid.strip()
-            if not sid:
-                continue
-            try:
-                ids.append(int(sid))
-            except ValueError:
-                synergy_name = sid
-        rows.append({
-            'id': row[0],
-            'hero_id': row[1],
-            'synergy_ids': ids,
-            'synergy_name': synergy_name,
-            'attribute': row[3],
-            'bonus_type': row[4],
-            'bonus': row[5],
-            'global': bool(row[6]),
-            'personal': bool(row[7]),
-            'tier': row[8],
-            'rank_required': row[9] if len(row) > 9 else None
-        })
-    conn.close()
-    return jsonify(rows)
-
-@app.route('/api/heroes')
-def api_heroes():
-    heroes = Hero.query.all()
-    return jsonify([{'hero_id': h.hero_id, 'name': h.name} for h in heroes])
-
-@app.route('/api/attributes')
-def api_attributes():
-    conn = sqlite3.connect(os.path.join(basedir, 'idleherotd.db'))
-    cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT attribute FROM synergy_details')
-    attributes = [row[0] for row in cursor.fetchall()]
-    conn.close()
-    return jsonify(attributes)
-
-@app.route('/api/bonus_types')
-def api_bonus_types():
-    conn = sqlite3.connect(os.path.join(basedir, 'idleherotd.db'))
-    cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT bonus_type FROM synergy_details')
-    bonus_types = [row[0] for row in cursor.fetchall()]
-    conn.close()
-    return jsonify(bonus_types)
-
-@app.route('/api/tiers')
-def api_tiers():
-    conn = sqlite3.connect(os.path.join(basedir, 'idleherotd.db'))
-    cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT tier FROM synergy_details')
-    tiers = [row[0] for row in cursor.fetchall()]
-    conn.close()
-    return jsonify(tiers)
-
-@app.route('/api/ranks')
-def api_ranks():
-    conn = sqlite3.connect(os.path.join(basedir, 'idleherotd.db'))
-    cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT rank_required FROM synergy_details')
-    ranks = [row[0] for row in cursor.fetchall()]
-    conn.close()
-    return jsonify(ranks)
-
-@app.route('/api/levelup-attributes')
-def api_levelup_attributes():
-    conn = sqlite3.connect(os.path.join(basedir, 'idleherotd.db'))
-    cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT attribute FROM hero_level_bonus')
-    attributes = [row[0] for row in cursor.fetchall()]
-    conn.close()
-    return jsonify(attributes)
-
 admin.add_view(SynergyDetailAdmin(SynergyDetail, db.session))
-
-
-@app.route('/hero/<int:hero_id>')
-def get_hero(hero_id):
-    h = Hero.query.get(hero_id)
-    if not h:
-        return jsonify({'error': 'Hero not found'}), 404
-    return jsonify({
-        'hero_id': h.hero_id,
-        'name': h.name,
-        'skill': h.skill,
-        'ability': h.ability,
-        'cd': h.cd,
-        'description': h.description,
-        'value': h.value,
-        'time': h.time
-    })
 
 
 # /heroes and / show only hero data
 @app.route('/')
-
 def index_page():
     heroes = Hero.query.all()
     return render_template('heroes.html', heroes=heroes, active_nav='heroes')
 
 @app.route('/heroes')
-
 def heroes_page():
     heroes = Hero.query.all()
     return render_template('heroes.html', heroes=heroes, active_nav='heroes')
  
-@app.route('/api/heroes/levelup')
-def api_heroes_levelup():
-    hero_list = []
+# Page render endpoint (in app.py)
+@app.route('/levelup')
+def levelup_page():
     conn = sqlite3.connect(os.path.join(basedir, 'idleherotd.db'))
     cursor = conn.cursor()
-    heroes = Hero.query.all()
-    for hero in heroes:
-        cursor.execute('SELECT level, bonus, bonus_type, attribute, global, personal FROM hero_level_bonus WHERE hero_id=?', (hero.hero_id,))
-        bonuses = []
-        for row in cursor.fetchall():
-            bonuses.append(OrderedDict([
-                ('level', row[0]),
-                ('attribute', row[3]),
-                ('value', row[1]),
-                ('type', row[2]),
-                ('scope', {
-                    'global': bool(row[4]),
-                    'personal': bool(row[5])
-                })
-            ]))
-        hero_dict = OrderedDict()
-        hero_dict['id'] = hero.hero_id
-        hero_dict['name'] = hero.name
-        hero_dict['bonuses'] = bonuses
-        hero_list.append(hero_dict)
-    conn.close()
-    result = OrderedDict()
-    result['heroes'] = hero_list
-    return Response(json.dumps(result, ensure_ascii=False, sort_keys=False), mimetype='application/json')
-        
-        
+    cursor.execute('SELECT DISTINCT level FROM hero_level_bonus ORDER BY level')
     levels = [row[0] for row in cursor.fetchall()]
     cursor.execute('SELECT DISTINCT attribute FROM hero_level_bonus')
     attributes = [row[0] for row in cursor.fetchall()]
+    heroes = Hero.query.all()
     hero_rows = []
     for hero in heroes:
         cursor.execute('SELECT level, bonus, bonus_type, attribute, global, personal FROM hero_level_bonus WHERE hero_id=?', (hero.hero_id,))
@@ -276,25 +125,10 @@ def api_heroes_levelup():
     conn.close()
     return render_template('levelup.html', levels=levels, hero_rows=hero_rows, attributes=attributes, active_nav='levelup')
     # API route for hero data
-@app.route('/api/heroes')
-def api_get_heroes():
-    heroes = Hero.query.all()
-    return jsonify([
-        {
-            'hero_id': h.hero_id,
-            'name': h.name,
-            'skill': h.skill,
-            'ability': h.ability,
-            'cd': h.cd,
-            'description': h.description,
-            'value': h.value,
-            'time': h.time
-        } for h in heroes
-    ])
+
 
 # /synergies page: hero synergies table
 @app.route('/synergies')
-
 def synergies_page():
     heroes = Hero.query.all()
     hero_names = {h.hero_id: h.name for h in heroes}
@@ -336,54 +170,6 @@ def synergies_page():
     return render_template('synergies.html', synergy_rows=synergy_rows, hero_names=hero_names, active_nav='synergies')
 
 
-@app.route('/api/synergy', methods=['POST'])
-def api_synergy_save():
-    data = request.json
-    conn = sqlite3.connect(os.path.join(basedir, 'idleherotd.db'))
-    cursor = conn.cursor()
-    # If id is present, update; else, insert new
-    if data.get('id'):
-        cursor.execute('''
-            UPDATE synergy_details SET hero_id=?, synergy_ids=?, attribute=?, bonus_type=?, bonus=?, global=?, personal=?, tier=?, rank_required=? WHERE id=?
-        ''', (
-            data['hero_id'],
-            ','.join(str(sid) for sid in data['synergy_ids']),
-            data['attribute'],
-            data['bonus_type'],
-            data['bonus'],
-            int(data['global']),
-            int(data['personal']),
-            data['tier'],
-            data['rank_required'],
-            data['id']
-        ))
-    else:
-        cursor.execute('''
-            INSERT INTO synergy_details (hero_id, synergy_ids, attribute, bonus_type, bonus, global, personal, tier, rank_required)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            data['hero_id'],
-            ','.join(str(sid) for sid in data['synergy_ids']),
-            data['attribute'],
-            data['bonus_type'],
-            data['bonus'],
-            int(data['global']),
-            int(data['personal']),
-            data['tier'],
-            data['rank_required']
-        ))
-    conn.commit()
-    conn.close()
-    return jsonify({'success': True})
-
-@app.route('/api/synergy/<int:synergy_id>', methods=['DELETE'])
-def api_synergy_delete(synergy_id):
-    conn = sqlite3.connect(os.path.join(basedir, 'idleherotd.db'))
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM synergy_details WHERE id=?', (synergy_id,))
-    conn.commit()
-    conn.close()
-    return jsonify({'success': True})
 
 
 if __name__ == '__main__':

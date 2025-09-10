@@ -229,7 +229,7 @@ synergies = [
                 "rank_required": 50
             },
             {
-                "synergy_ids": [49],
+                "synergy_ids": [40],
                 "attribute": "super_exp_chance",
                 "bonus_type": "percent",
                 "bonus": 2,
