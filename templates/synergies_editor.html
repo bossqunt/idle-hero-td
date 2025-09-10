@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <div class="wiki-header">Simple Synergy Admin</div>
+  <div class="wiki-subheader">Edit hero synergies inline. Add, update, or delete easily.</div>
+  <div id="synergy-admin-table"></div>
+</div>
+<!-- Include Select2 for searchable multi-select -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+async function fetchSynergyData() {
+  const [synergies, heroes, attributes, bonusTypes, tiers, ranks] = await Promise.all([
+    fetch('/api/synergies').then(r => r.json()),
+    fetch('/api/heroes').then(r => r.json()),
+    fetch('/api/attributes').then(r => r.json()),
+    fetch('/api/bonus_types').then(r => r.json()),
+    fetch('/api/tiers').then(r => r.json()),
+    fetch('/api/ranks').then(r => r.json()),
+  ]);
+  return { synergies, heroes, attributes, bonusTypes, tiers, ranks };
+}
+
+function renderTable(data) {
+  const { synergies, heroes, attributes, bonusTypes, tiers, ranks } = data;
+  const table = document.createElement('table');
+  table.className = 'table table-bordered';
+  table.innerHTML = `<thead><tr>
+    <th>Hero</th><th>Synergy Heroes</th><th>Attribute</th><th>Bonus Type</th><th>Bonus</th><th>Tier</th><th>Global</th><th>Personal</th><th>Rank Required</th><th>Actions</th>
+  </tr></thead><tbody></tbody>`;
+  const tbody = table.querySelector('tbody');
+  synergies.forEach(syn => {
+    const tr = document.createElement('tr');
+    // Main Hero dropdown (always use syn.hero_id, only one selected)
+    tr.innerHTML += `<td><label for="hero-select">Hero</label><br><select class="form-select form-select-sm hero-select" id="hero-select">${heroes.map(h => `<option value="${h.hero_id}"${h.hero_id==syn.hero_id?' selected':''}>${h.name}</option>`).join('')}</select></td>`;
+    // Synergy Heroes multi-select (use syn.synergy_ids, only those selected)
+    tr.innerHTML += `<td><label for="synergy-select">Synergy Heroes</label><br><select class="form-select form-select-sm synergy-select" id="synergy-select" multiple style="width: 180px;">${heroes.map(h => `<option value="${h.hero_id}"${Array.isArray(syn.synergy_ids) && syn.synergy_ids.includes(h.hero_id)?' selected':''}>${h.name}</option>`).join('')}</select></td>`;
+    // Attribute dropdown
+    tr.innerHTML += `<td><label for="attr-select">Attribute</label><br><select class="form-select form-select-sm attr-select select2" id="attr-select">${attributes.map(a => `<option value="${a}"${a==syn.attribute?' selected':''}>${a.replace('_',' ')}</option>`).join('')}</select></td>`;
+    // Bonus type dropdown
+    tr.innerHTML += `<td><label for="bonus-type-select">Bonus Type</label><br><select class="form-select form-select-sm bonus-type-select" id="bonus-type-select">${bonusTypes.map(b => `<option value="${b}"${b==syn.bonus_type?' selected':''}>${b}</option>`).join('')}</select></td>`;
+    // Bonus input
+    tr.innerHTML += `<td><label for="bonus-input">Bonus</label><br><input type="number" class="form-control form-control-sm bonus-input" id="bonus-input" value="${syn.bonus}"></td>`;
+    // Tier dropdown
+    tr.innerHTML += `<td><label for="tier-select">Tier</label><br><select class="form-select form-select-sm tier-select" id="tier-select">${tiers.map(t => `<option value="${t}"${t==syn.tier?' selected':''}>${t}</option>`).join('')}</select></td>`;
+    // Global checkbox
+    tr.innerHTML += `<td><label for="global-check">Global</label><br><input type="checkbox" class="form-check-input global-check" id="global-check"${syn.global?' checked':''}></td>`;
+    // Personal checkbox
+    tr.innerHTML += `<td><label for="personal-check">Personal</label><br><input type="checkbox" class="form-check-input personal-check" id="personal-check"${syn.personal?' checked':''}></td>`;
+    // Rank dropdown
+    tr.innerHTML += `<td><label for="rank-select">Rank Required</label><br><select class="form-select form-select-sm rank-select" id="rank-select">${ranks.map(r => `<option value="${r}"${r==syn.rank_required?' selected':''}>${r}</option>`).join('')}</select></td>`;
+    // Actions
+    tr.innerHTML += `<td><button class="btn btn-sm btn-primary me-1 save-btn">Save</button><button class="btn btn-sm btn-danger delete-btn">Delete</button></td>`;
+    tbody.appendChild(tr);
+  });
+  // Add row button
+  const addTr = document.createElement('tr');
+  addTr.innerHTML = `<td colspan="10"><button class="btn btn-success w-100 add-btn">Add New Synergy</button></td>`;
+  tbody.appendChild(addTr);
+  document.getElementById('synergy-admin-table').innerHTML = '';
+  document.getElementById('synergy-admin-table').appendChild(table);
+  // Activate Select2 for all synergy-selects
+  setTimeout(() => {
+    $(document).find('.synergy-select').select2({
+      placeholder: 'Select synergy heroes',
+      allowClear: true,
+      maximumSelectionLength: 4,
+      width: 'resolve'
+    });
+    // Activate Select2 for all attribute selects
+    $(document).find('.attr-select').select2({
+      placeholder: 'Select attribute',
+      allowClear: true,
+      width: 'resolve'
+    });
+  }, 100);
+  // TODO: Add event listeners for save, delete, add actions (AJAX)
+}
+
+fetchSynergyData().then(renderTable);
+</script>
+{% endblock %}
