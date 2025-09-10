@@ -76,24 +76,32 @@ def insert_heroes():
 # Insert synergies
 def insert_synergies():
     for entry in synergies:
-        hero_id = entry['hero_id']
+        hero_id = entry.get('hero_id')
         c.execute('''
             INSERT OR REPLACE INTO synergies (hero_id) VALUES (?)
         ''', (hero_id,))
-        for detail in entry['synergies']:
+        for detail in entry.get('synergies', []):
+            synergy_ids = detail.get('synergy_ids', [])
+            attribute = detail.get('attribute', '')
+            bonus_type = detail.get('bonus_type', '')
+            bonus = detail.get('bonus', 0)
+            global_val = int(detail.get('global', False))
+            personal_val = int(detail.get('personal', False))
+            tier = detail.get('tier', 0)
+            rank_required = detail.get('rank_required', 0)
             c.execute('''
-                INSERT OR IGNORE INTO  synergy_details (hero_id, synergy_ids, attribute, bonus_type, bonus, global, personal, tier, rank_required)
+                INSERT OR IGNORE INTO synergy_details (hero_id, synergy_ids, attribute, bonus_type, bonus, global, personal, tier, rank_required)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 hero_id,
-                ','.join(str(sid) for sid in detail['synergy_ids']),
-                detail['attribute'],
-                detail['bonus_type'],
-                detail['bonus'],
-                int(detail['global']),
-                int(detail['personal']),
-                detail['tier'],
-                detail['rank_required']
+                ','.join(str(sid) for sid in synergy_ids),
+                attribute,
+                bonus_type,
+                bonus,
+                global_val,
+                personal_val,
+                tier,
+                rank_required
             ))
 
 

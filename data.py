@@ -327,7 +327,172 @@ synergies = [
                 "personal": False,
                 "tier": 9,
                 "rank_required": 1500
+            }
+        ]
+    },
+    {
+        "hero_id": 3,
+        "synergies": [
+            {
+                "synergy_ids": [6],
+                "attribute": "damage",
+                "bonus_type": "percent",
+                "bonus": 28,
+                "global": False,
+                "personal": True,
+                "tier": 1,
+                "rank_required": 0
             },
+            {
+                "synergy_ids": [1,4],
+                "attribute": "crit_chance",
+                "bonus_type": "percent",
+                "bonus": 4,
+                "global": True,
+                "personal": False,
+                "tier": 1,
+                "rank_required": 0
+            },
+            {
+                "synergy_ids": [19],
+                "attribute": "kill_gold",
+                "bonus_type": "percent",
+                "bonus": 112,
+                "global": False,
+                "personal": True,
+                "tier": 2,
+                "rank_required": 15
+            },
+            {
+                "synergy_ids": [7,25],
+                "attribute": "attack_speed",
+                "bonus_type": "percent",
+                "bonus": 67,
+                "global": False,
+                "personal": True,
+                "tier": 2,
+                "rank_required": 15
+            },
+            {
+                "synergy_ids": [27],
+                "attribute": "crit_damage",
+                "bonus_type": "percent",
+                "bonus": 90,
+                "global": True,
+                "personal": False,
+                "tier": 3,
+                "rank_required": 50
+            },
+            {
+                "synergy_ids": [5,32],
+                "attribute": "skill_cooldown",
+                "bonus_type": "percent",
+                "bonus": -34,
+                "global": False,
+                "personal": True,
+                "tier": 3,
+                "rank_required": 50
+            },
+            {
+                "synergy_ids": [34],
+                "attribute": "super_gold_amount",
+                "bonus_type": "percent",
+                "bonus": 505,
+                "global": True,
+                "personal": False,
+                "tier": 4,
+                "rank_required": 100
+            },
+            {
+                "synergy_ids": [16,36],
+                "attribute": "damage",
+                "bonus_type": "percent",
+                "bonus": 168,
+                "global": True,
+                "personal": False,
+                "tier": 4,
+                "rank_required": 100
+            },
+            {
+                "synergy_ids": [8],
+                "attribute": "energy_income",
+                "bonus_type": "fixed",
+                "bonus": 3,
+                "global": True,
+                "personal": False,
+                "tier": 5,
+                "rank_required": 150
+            },
+            {
+                "synergy_ids": [23,27],
+                "attribute": "super_crit_chance",
+                "bonus_type": "percent",
+                "bonus": 28,
+                "global": False,
+                "personal": True,
+                "tier": 5,
+                "rank_required": 150
+            },
+            {
+                "synergy_ids": [13],
+                "attribute": "kill_gold",
+                "bonus_type": "percent",
+                "bonus": 281,
+                "global": True,
+                "personal": False,
+                "tier": 6,
+                "rank_required": 250
+            },
+            {
+                "synergy_ids": [17,41],
+                "attribute": "ultra_exp_amount",
+                "bonus_type": "percent",
+                "bonus": 67,
+                "global": True,
+                "personal": False,
+                "tier": 6,
+                "rank_required": 250
+            },
+            {
+                "synergy_ids": [31],
+                "attribute": "super_gold_amount",
+                "bonus_type": "percent",
+                "bonus": 954,
+                "global": True,
+                "personal": False,
+                "tier": 7,
+                "rank_required": 500
+            },
+            {
+                "synergy_ids": [6, 37],
+                "attribute": "super_gold_chance",
+                "bonus_type": "percent",
+                "bonus": 16,
+                "global": True,
+                "personal": False,
+                "tier": 7,
+                "rank_required": 500
+            },
+            {
+                "synergy_ids": [6,19,24],
+                "attribute": "ultra_gold_chance",
+                "bonus_type": "percent",
+                "bonus": 8,
+                "global": True,
+                "personal": False,
+                "tier": 8,
+                "rank_required": 1000
+            },
+            {
+                "synergy_ids": [32,32,21],
+                "attribute": "battlepass_exp",
+                "bonus_type": "fixed",
+                "bonus": 1,
+                "global": True,
+                "personal": False,
+                "tier": 9,
+                "rank_required": 1500
+            }
         ]
     }
 ]

@@ -1,42 +1,23 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "IdleHeroTD API",
+    "title": "Idle Hero TD API",
     "version": "1.0.0"
   },
   "paths": {
-    "/heroes": {
+    "/api/heroes": {
       "get": {
-        "summary": "Get all heroes data",
+        "summary": "Get all heroes",
         "responses": {
           "200": {
-            "description": "List of heroes",
-            "content": {
-              "application/json": {
-                "example": [
-                  {"id": 1, "name": "Militia", "type": "melee", "rarity": "common"},
-                  {"id": 2, "name": "Archer", "type": "ranged", "rarity": "rare"}
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "/levelup": {
-      "get": {
-        "summary": "Get all level-up milestone data",
-        "responses": {
-          "200": {
-            "description": "Level-up milestone data",
+            "description": "Heroes with count",
             "content": {
               "application/json": {
                 "example": {
-                  "1": [
-                    {"level": 25, "bonus": 10, "bonus_type": "percent", "attribute": "damage", "global": false, "personal": true}
-                  ],
-                  "2": [
-                    {"level": 25, "bonus": 2, "bonus_type": "percent", "attribute": "attack_speed", "global": true, "personal": false}
+                  "count": 2,
+                  "heroes": [
+                    {"hero_id": 1, "name": "Militia"},
+                    {"hero_id": 2, "name": "Apprentice"}
                   ]
                 }
               }
@@ -45,23 +26,207 @@
         }
       }
     },
-    "/table": {
+    "/api/heroes/levelup": {
       "get": {
-        "summary": "Get merged table data",
+        "summary": "Get hero levelup bonuses",
         "responses": {
           "200": {
-            "description": "Table data",
+            "description": "Hero levelup data with count",
             "content": {
               "application/json": {
                 "example": {
-                  "table": [
+                  "count": 32,
+                  "heroes": [
                     {
-                      "hero": "Militia",
-                      "level 25": {"bonus": "+10 Damage%", "global": false, "personal": true}
+                      "id": 1,
+                      "name": "Militia",
+                      "bonuses": [
+                        {
+                          "level": 25,
+                          "attribute": "damage",
+                          "value": 10,
+                          "type": "percent",
+                          "scope": {
+                            "global": false,
+                            "personal": true
+                          }
+                        }
+                      ]
                     }
-                  ],
-                  "columns": ["hero", "level 25", "level 75", "..."]
+                  ]
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/synergies": {
+      "get": {
+        "summary": "Get all synergies",
+        "responses": {
+          "200": {
+            "description": "Synergies grouped by hero with count",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 48,
+                  "synergies": [
+                    {
+                      "hero_id": 1,
+                      "hero_name": "Militia",
+                      "synergies": [
+                        {
+                          "synergy_hero_ids": [2],
+                          "attribute": "damage",
+                          "bonus": 10,
+                          "bonus_type": "percent",
+                          "tier": 1,
+                          "rank_required": 0,
+                          "scope": {
+                            "global": true,
+                            "personal": false
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/attributes": {
+      "get": {
+        "summary": "Get all attributes",
+        "responses": {
+          "200": {
+            "description": "List of attributes",
+            "content": {
+              "application/json": {
+                "example": ["damage", "attack_speed", "crit_chance"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bonus_types": {
+      "get": {
+        "summary": "Get all bonus types",
+        "responses": {
+          "200": {
+            "description": "List of bonus types",
+            "content": {
+              "application/json": {
+                "example": ["percent", "fixed"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tiers": {
+      "get": {
+        "summary": "Get all tiers",
+        "responses": {
+          "200": {
+            "description": "List of tiers",
+            "content": {
+              "application/json": {
+                "example": [1, 2, 3]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ranks": {
+      "get": {
+        "summary": "Get all ranks",
+        "responses": {
+          "200": {
+            "description": "List of ranks",
+            "content": {
+              "application/json": {
+                "example": [0, 15, 50]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/levelup-attributes": {
+      "get": {
+        "summary": "Get all levelup attributes",
+        "responses": {
+          "200": {
+            "description": "List of levelup attributes",
+            "content": {
+              "application/json": {
+                "example": ["damage", "attack_speed", "crit_chance"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/synergy": {
+      "post": {
+        "summary": "Create or update a synergy",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {"type": "integer", "description": "Synergy ID (for updates)"},
+                  "hero_id": {"type": "integer", "required": true},
+                  "synergy_ids": {"type": "array", "items": {"type": "integer"}},
+                  "attribute": {"type": "string"},
+                  "bonus_type": {"type": "string"},
+                  "bonus": {"type": "number"},
+                  "global": {"type": "boolean"},
+                  "personal": {"type": "boolean"},
+                  "tier": {"type": "integer"},
+                  "rank_required": {"type": "integer"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "example": {"success": true}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/synergy/{synergy_id}": {
+      "delete": {
+        "summary": "Delete a synergy",
+        "parameters": [
+          {
+            "name": "synergy_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "example": {"success": true}
               }
             }
           }
@@ -70,3 +235,4 @@
     }
   }
 }
+                

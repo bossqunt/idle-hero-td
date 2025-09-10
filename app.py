@@ -8,7 +8,8 @@ from wtforms.fields import SelectField, SelectMultipleField
 import os
 import sqlite3
 from models import db, Hero, SynergyDetail, basedir
-
+from flask import send_from_directory
+from flask_swagger_ui import get_swaggerui_blueprint
 
 app = Flask(__name__)
 app.register_blueprint(api)
@@ -17,7 +18,20 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'id
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 admin = Admin(app, name='Idle Hero TD Admin', template_mode='bootstrap3')
+SWAGGER_URL = '/swagger'
+API_URL = '/openapi.json'  # Path to your OpenAPI spec
 
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={'app_name': "Idle Hero TD API"}
+)
+app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+
+
+@app.route('/openapi.json')
+def openapi_json():
+    return send_from_directory('.', 'openapi.json')
 
 # Custom SynergyDetail admin view
 class SynergyDetailAdmin(ModelView):
